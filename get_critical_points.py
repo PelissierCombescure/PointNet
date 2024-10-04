@@ -99,7 +99,7 @@ def main():
     pointnet.eval();
     
     points_cloud = setup_dataset(input_path)
-    pt_cloud_reshape = points_cloud.unsqueeze(0).float(); print(pt_cloud_reshape.shape, pt_cloud_reshape.dtype)
+    pt_cloud_reshape = points_cloud.unsqueeze(0).float(); #print(pt_cloud_reshape.shape, pt_cloud_reshape.dtype)
 
     # Assuming 'point_cloud' has shape [B, 3, N], where B is batch size, 3 are coordinates, N is number of points
     _, per_point_features, _, _ = pointnet(pt_cloud_reshape.transpose(1,2))
@@ -110,10 +110,9 @@ def main():
     # Extract critical points from the original point cloud
     idx_critical_points = set([item for sublist in indices.tolist() for item in sublist]); len(idx_critical_points)
     
-    
     print(f"\nName of file: {name_file}")
     print(f"Output path: {output_path}")
-    print(f"Kind of outputs: {dict_kind_of_outputs}")
+    print(f"Kind of outputs: {dict_kind_of_outputs}\n")
     
     # Write the .obj file
     write_obj_with_colors(pt_cloud_reshape, idx_critical_points, name_file, "outputs/", dict_kind_of_outputs)
