@@ -6,7 +6,7 @@ def read_off(file):
     faces = [[int(s) for s in file.readline().strip().split(' ')][1:] for i_face in range(n_faces)]
     return verts, faces
 
-def write_obj_with_colors(pt_cloud, idx_critical_pts, file_name, path_outputs_folder = "", kind_of_outputs = {'critical and non-critical points' : True, 'only critical points' : True, 'objet' : True}):
+def write_obj_with_colors_from_pt_cloud(pt_cloud, idx_critical_pts, file_name, path_outputs_folder = "", kind_of_outputs = {'critical and non-critical points' : True, 'only critical points' : True, 'objet' : True}):
     """
     Writes a point cloud to an .obj file with specific points colored in red.
     Other points are colored in black.
@@ -45,5 +45,25 @@ def write_obj_with_colors(pt_cloud, idx_critical_pts, file_name, path_outputs_fo
             for idx, (x, y, z) in enumerate(pt_cloud):
                 f.write(f"v {x.item()} {y.item()} {z.item()} 0.0 0.0 0.0\n")
         print(f"OBJ file saved to {path_outputs_folder+'all_pts_OF_'+file_name+'.obj'}")
+        
+        
+def write_off_file(filename, vertices, faces):
+    """
+    Write vertices and faces to an .obj file.
+    
+    Args:
+        filename (str): The path of the output .obj file.
+        vertices (arrays): A tensor of shape (N, 3) containing the 3D coordinates of N vertices.
+        faces (list of lists or array): A list or array of shape (M, 3) where each element is a list/array
+                                        containing the indices of the vertices forming each face.
+    """
+    with open(filename, 'w') as file:
+        # Write the vertices
+        for vertex in vertices:
+            file.write(f"v {vertex[0].item()} {vertex[1].item()} {vertex[2].item()}\n")
+        
+        # Write the faces (OBJ uses 1-based indexing, so we add 1 to the indices)
+        for face in faces:
+            file.write(f"f {face[0]} {face[1]} {face[2]}\n")
 
 

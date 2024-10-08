@@ -98,6 +98,7 @@ def main():
     pointnet.load_state_dict(torch.load('save.pth', map_location=torch.device('cpu')))  # or use 'cuda' if using GPU
     pointnet.eval();
     
+    # Point cloud of the objet 
     points_cloud = setup_dataset(input_path)
     pt_cloud_reshape = points_cloud.unsqueeze(0).float(); #print(pt_cloud_reshape.shape, pt_cloud_reshape.dtype)
 
@@ -115,7 +116,7 @@ def main():
     print(f"Kind of outputs: {dict_kind_of_outputs}\n")
     
     # Write the .obj file
-    write_obj_with_colors(pt_cloud_reshape, idx_critical_points, name_file, "outputs/", dict_kind_of_outputs)
+    write_obj_with_colors_from_pt_cloud(pt_cloud_reshape, idx_critical_points, name_file, "outputs/", dict_kind_of_outputs)
     
     # Save the dictionary to a JSON file
     save_point_cloud_info(input_path, pt_cloud_reshape, idx_critical_points, name_file, output_path)

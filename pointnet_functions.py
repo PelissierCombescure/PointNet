@@ -6,6 +6,7 @@ from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from path import Path
 import os
+import json
 
 from utils import read_off
 
@@ -13,9 +14,10 @@ from utils import read_off
 
 ########################## TRANSFORMS ##############################
 class PointSampler(object):
-    def __init__(self, output_size):
+    def __init__(self, output_size, object=False):
         assert isinstance(output_size, int)
         self.output_size = output_size
+        self.object = object
     
     def triangle_area(self, pt1, pt2, pt3):
         side_a = np.linalg.norm(pt1 - pt2)
@@ -37,25 +39,106 @@ class PointSampler(object):
         verts = np.array(verts)
         areas = np.zeros((len(faces)))
 
+
         for i in range(len(areas)):
             areas[i] = (self.triangle_area(verts[faces[i][0]],
-                                           verts[faces[i][1]],
-                                           verts[faces[i][2]]))
+                                        verts[faces[i][1]],
+                                        verts[faces[i][2]]))
             
         sampled_faces = (random.choices(faces, 
-                                      weights=areas,
-                                      cum_weights=None,
-                                      k=self.output_size))
+                                    weights=areas,
+                                    cum_weights=None,
+                                    k=self.output_size))
         
         sampled_points = np.zeros((self.output_size, 3))
 
         for i in range(len(sampled_faces)):
             sampled_points[i] = (self.sample_point(verts[sampled_faces[i][0]],
-                                                   verts[sampled_faces[i][1]],
-                                                   verts[sampled_faces[i][2]]))
+                                                verts[sampled_faces[i][1]],
+                                                verts[sampled_faces[i][2]]))
         
         return sampled_points
+
+
+# class PointSampler(object):
+#     def __init__(self, output_size):
+#         assert isinstance(output_size, int)
+#         self.output_size = output_size
+#         self.object = object
     
+#     def triangle_area(self, pt1, pt2, pt3):
+#         side_a = np.linalg.norm(pt1 - pt2)
+#         side_b = np.linalg.norm(pt2 - pt3)
+#         side_c = np.linalg.norm(pt3 - pt1)
+#         s = 0.5 * (side_a + side_b + side_c)
+#         return max(s * (s - side_a) * (s - side_b) * (s - side_c), 0)**0.5
+
+#     def sample_point(self, pt1, pt2, pt3):
+#         # barycentric coordinates on a triangle
+#         # https://mathworld.wolfram.com/BarycentricCoordinates.html
+#         s, t = sorted([random.random(), random.random()])
+#         f = lambda i: s * pt1[i] + (t-s)*pt2[i] + (1-t)*pt3[i]
+#         return (f(0), f(1), f(2))
+        
+    
+#     def __call__(self, mesh):
+#         verts, faces = mesh
+#         verts = np.array(verts)
+#         areas = np.zeros((len(faces)))
+
+#         # Calculate areas of all triangles
+#         for i in range(len(areas)):
+#             areas[i] = self.triangle_area(verts[faces[i][0]],
+#                                           verts[faces[i][1]],
+#                                           verts[faces[i][2]])
+
+#         # Sample faces according to their areas
+#         sampled_faces = random.choices(faces, weights=areas, k=self.output_size)
+
+#         sampled_points = np.zeros((self.output_size, 3))
+#         sampled_faces_indices = []  # To store the face connections of the sampled points
+        
+#         # Map from original face index to sampled point index
+#         sampled_points_map = {}
+#         current_idx = 0  # To track the index of the new point cloud
+
+#         for i, face in enumerate(sampled_faces):
+#             # Get the original vertices of the face
+#             pt1_idx, pt2_idx, pt3_idx = face
+#             pt1, pt2, pt3 = verts[pt1_idx], verts[pt2_idx], verts[pt3_idx]
+
+#             # Sample a point on the triangle
+#             sampled_point = self.sample_point(pt1, pt2, pt3)
+#             sampled_points[i] = sampled_point
+
+#             # Check if each vertex of the face is already in the map, if not, add it
+#             if pt1_idx not in sampled_points_map:
+#                 sampled_points_map[pt1_idx] = current_idx
+#                 current_idx += 1
+
+#             if pt2_idx not in sampled_points_map:
+#                 sampled_points_map[pt2_idx] = current_idx
+#                 current_idx += 1
+
+#             if pt3_idx not in sampled_points_map:
+#                 sampled_points_map[pt3_idx] = current_idx
+#                 current_idx += 1
+
+#             # Store the face indices for the new sampled points
+#             face_indices = [
+#                 sampled_points_map[pt1_idx],
+#                 sampled_points_map[pt2_idx],
+#                 sampled_points_map[pt3_idx]
+#             ]
+#             sampled_faces_indices.append(face_indices)
+            
+        
+#         with open('outputs/idx_faces.json', 'w') as f:
+#             json.dump({'idx_faces':list(sampled_faces_indices)}, f, indent=4)
+
+#         return sampled_points
+
+        
     
 
 class Normalize(object):
@@ -87,6 +170,36 @@ class RandomNoise(object):
     
         noisy_pointcloud = pointcloud + noise
         return  noisy_pointcloud
+
+
+# ######################
+# class RandRotation_zv2(object):
+#     def __init__(self, theta):
+#         self.theta = theta    
+    
+#     def __call__(self, pointcloud):
+#         assert len(pointcloud.shape)==2
+
+#         #theta = random.random() * 2. * math.pi
+#         rot_matrix = np.array([[ math.cos(self.theta), -math.sin(self.theta),    0],
+#                                [ math.sin(self.theta),  math.cos(self.theta),    0],
+#                                [0,                             0,      1]])
+        
+#         rot_pointcloud = rot_matrix.dot(pointcloud.T).T
+#         return  rot_pointcloud
+    
+# class RandomNoise_v2(object):
+#     def __init__(self, noise):
+#         self.noise = noise    
+        
+#     def __call__(self, pointcloud):
+#         assert len(pointcloud.shape)==2
+
+#         #noise = np.random.normal(0, 0.02, (pointcloud.shape))
+    
+#         noisy_pointcloud = pointcloud + self.noise
+#         return  noisy_pointcloud
+ ########################""   
     
 class ToTensor(object):
     def __call__(self, pointcloud):
