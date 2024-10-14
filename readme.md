@@ -28,8 +28,8 @@ Et un fichier json avec comme information :
 * kind_of_outputs : dictionnaire indicant quels fichiers on souhaite générer parmi les 3, par défaut les 3 sont générés.
 
 *command line* : 
- *  python3 get_critical_points.py ModelNet10/chair/test/chair_0948.off outputs
+ *  python3 get_critical_points.py /../odelNet10/chair/test/chair_0948.off outputs
 
 OU
 
-* python3 get_critical_points.py ModelNet10/chair/test/chair_0948.off outputs --kind_of_outputs '{"critical and non-critical points": true, "only critical points": false, "objet": false}'
+* python3 get_critical_points.py /../ModelNet10/chair/test/chair_0948.off outputs --kind_of_outputs '{"critical and non-critical points": true, "only critical points": false, "objet": false}'

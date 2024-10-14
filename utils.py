@@ -1,3 +1,6 @@
+import numpy as np
+import torch
+
 def read_off(file):
     if 'OFF' != file.readline().strip():
         raise('Not a valid OFF header')
@@ -46,7 +49,10 @@ def write_obj_with_colors_from_pt_cloud(pt_cloud, idx_critical_pts, file_name, p
                 f.write(f"v {x.item()} {y.item()} {z.item()} 0.0 0.0 0.0\n")
         print(f"OBJ file saved to {path_outputs_folder+'all_pts_OF_'+file_name+'.obj'}")
         
-        
+  
+### ATTENTION 
+# indice face commence à 1 pour OBJ 
+# indice face commence à 0 pour OFF     
 def write_off_file(filename, vertices, faces):
     """
     Write vertices and faces to an .obj file.
@@ -57,6 +63,9 @@ def write_off_file(filename, vertices, faces):
         faces (list of lists or array): A list or array of shape (M, 3) where each element is a list/array
                                         containing the indices of the vertices forming each face.
     """
+    print(f"----- ATTENTION ------\n\
+        # indice face commence à 1 pour OBJ \n\
+        # indice face commence à 0 pour OFF     ")  
     with open(filename, 'w') as file:
         # Write the vertices
         for vertex in vertices:
@@ -65,5 +74,56 @@ def write_off_file(filename, vertices, faces):
         # Write the faces (OBJ uses 1-based indexing, so we add 1 to the indices)
         for face in faces:
             file.write(f"f {face[0]} {face[1]} {face[2]}\n")
+            
+
+            
+  
+### ATTENTION 
+# indice face commence à 1 pour OBJ 
+# indice face commence à 0 pour OFF    
+def write_mesh(vertices, faces, filename):
+    """
+    Write a 3D mesh to either an OBJ or OFF file based on the minimum face index.
+
+    Args:
+        vertices (np.ndarray or torch.Tensor): Array or tensor of vertex coordinates (shape: [N, 3]).
+        faces (np.ndarray): Array of face indices (shape: [M, 3] or [M, 4] for quads).
+        filename (str): Name of the output file.
+    """
+    
+    # Check if vertices is a tensor and convert to numpy array
+    if isinstance(vertices, torch.Tensor):
+        vertices = vertices.cpu().numpy()
+
+    # Determine if it's an OBJ or OFF file by checking the min value of faces
+    if np.min(faces) == 1:
+        # Write OBJ file (1-based indexing)
+        with open(filename + '.obj', 'w') as f:
+            # Write vertices
+            for vertex in vertices:
+                f.write(f"v {vertex[0]} {vertex[1]} {vertex[2]}\n")
+
+            # Write faces (OBJ format is 1-based)
+            for face in faces:
+                f.write(f"f {face[0]} {face[1]} {face[2]}\n")
+        print(f"OBJ file written to {filename}.obj")
+    
+    elif np.min(faces) == 0:
+        # Write OFF file (0-based indexing)
+        with open(filename + '.off', 'w') as f:
+            f.write("OFF\n")
+            f.write(f"{len(vertices)} {len(faces)} 0\n")  # num of vertices, faces, edges (optional)
+
+            # Write vertices
+            for vertex in vertices:
+                f.write(f"{vertex[0]} {vertex[1]} {vertex[2]}\n")
+
+            # Write faces (OFF format is 0-based)
+            for face in faces:
+                f.write(f"3 {face[0]} {face[1]} {face[2]}\n")
+        print(f"OFF file written to {filename}.off")
+    else:
+        print("Error: Invalid face indices. Faces should start from 0 or 1.")
+
 
 

@@ -11,7 +11,7 @@ from utils import *
 # A executer dans PoinNet0_env
 # Ligne de commande : python3 get_critical_points.py /.../ModelNet10/chair/test/chair_0896.off outputs
 
-# python get_critical_points.py ModelNet10/chair/test/chair_0948.off outputs --kind_of_outputs '{"critical and non-critical points": true, "only critical points": false, "objet": false}'
+# python get_critical_points.py /.../ModelNet10/chair/test/chair_0948.off outputs --kind_of_outputs '{"critical and non-critical points": true, "only critical points": false, "objet": false}'
 
 
 # Function to parse arguments
