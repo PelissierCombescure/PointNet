@@ -1,5 +1,7 @@
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
+
 
 def read_off(file):
     if 'OFF' != file.readline().strip():
@@ -50,6 +52,62 @@ def write_obj_with_colors_from_pt_cloud(pt_cloud, idx_critical_pts, file_name, p
         print(f"OBJ file saved to {path_outputs_folder+'all_pts_OF_'+file_name+'.obj'}")
         
   
+def assign_gradient_color(point_cloud, indices_list):
+    """
+    Assign gradient colors to specific points in the point cloud based on their occurrences in indices_list.
+    All other points will be colored black.
+
+    Args:
+        point_cloud (numpy.ndarray): Point cloud (Nx3) array where N is the number of points.
+        indices_list (list): List of indices for which the occurrences need to be considered.
+
+    Returns:
+        numpy.ndarray: Array of colors corresponding to the points.
+    """
+    # Step 1: Count occurrences of each index in the list
+    unique_indices, counts = np.unique(indices_list, return_counts=True)
+    
+    # Step 2: Normalize the counts to a range [0, 1]
+    normalized_counts = (counts - counts.min()) / (counts.max() - counts.min())
+
+    # Step 3: Create a colormap (e.g., from blue to red)
+    cmap = plt.get_cmap('Reds')
+
+    # Step 4: Initialize all points with black color (RGB = [0, 0, 0])
+    point_colors = np.zeros((point_cloud.shape[0], 3))  # Nx3 array for RGB colors, initialized to black
+
+    # Step 5: Assign colors to points in the indices_list based on their normalized counts
+    for idx, count in zip(unique_indices, normalized_counts):
+        point_colors[idx] = cmap(count)[:3]  # Assign RGB values from the colormap
+        
+    #print(normalized_counts, counts)
+    return point_colors, counts
+  
+
+def write_obj_with_gradient_colors_from_pt_cloud(pt_cloud, pt_colors, file_name, path_outputs_folder = ""):
+    """
+    Write a point cloud with colors to an OBJ file.
+
+    Args:
+        point_cloud (numpy.ndarray): Array of 3D coordinates (Nx3).
+        point_colors (numpy.ndarray): Array of RGB colors for each point (Nx3), with values between 0 and 1.
+        file_name (str): Output OBJ file name (with .obj extension).
+    """
+    if pt_cloud.shape[0] != pt_colors.shape[0]:
+        raise ValueError("Point cloud and point colors must have the same number of points.")
+    
+    # Open the file in write mode
+    with open(path_outputs_folder+'gradient_color_critical_pts_AND_'+file_name+'.obj', 'w') as file:
+        # Write vertices with colors
+        for i in range(pt_cloud.shape[0]):
+            x, y, z = pt_cloud[i]
+            r, g, b = pt_colors[i]
+            # Write the vertex with color in OBJ format (v x y z r g b)
+            file.write(f"v {x} {y} {z} {r} {g} {b}\n")
+
+    print(f"OBJ file '{file_name}' with gradient colors written successfully.")
+
+  
 ### ATTENTION 
 # indice face commence à 1 pour OBJ 
 # indice face commence à 0 pour OFF     
@@ -74,10 +132,7 @@ def write_off_file(filename, vertices, faces):
         # Write the faces (OBJ uses 1-based indexing, so we add 1 to the indices)
         for face in faces:
             file.write(f"f {face[0]} {face[1]} {face[2]}\n")
-            
-
-            
-  
+                    
 ### ATTENTION 
 # indice face commence à 1 pour OBJ 
 # indice face commence à 0 pour OFF    

@@ -7,8 +7,9 @@ import pickle
 from pointnet_functions import *
 from utils import *
 
-
+#######################################
 # A executer dans PoinNet0_env
+#######################################
 # Ligne de commande : python3 get_critical_points.py /.../ModelNet10/chair/test/chair_0896.off outputs
 
 # python get_critical_points.py /.../ModelNet10/chair/test/chair_0948.off outputs --kind_of_outputs '{"critical and non-critical points": true, "only critical points": false, "objet": false}'
@@ -48,7 +49,7 @@ def setup_dataset(path_to_file):
         
     return ptcloud
 
-def save_point_cloud_info(input_path, pcd, idx_critical_points, file_name, output_dir):
+def save_point_cloud_info(input_path, pcd, idx_critical_points, occur, file_name, output_dir):
     """
     Save the point cloud information (metadata and pcd data).
     
@@ -72,7 +73,8 @@ def save_point_cloud_info(input_path, pcd, idx_critical_points, file_name, outpu
         'nb_critical_points': len(idx_critical_points),
         'shape': pcd.squeeze(0).numpy().shape,
         'critical_points_indices': list(idx_critical_points),        
-        'num_points': pcd.squeeze(0).tolist()      
+        'num_points': pcd.squeeze(0).tolist() ,
+        'occurences': occur.tolist()
     }
     
     # Save the metadata as a JSON file
@@ -118,8 +120,16 @@ def main():
     # Write the .obj file
     write_obj_with_colors_from_pt_cloud(pt_cloud_reshape, idx_critical_points, name_file, "outputs/", dict_kind_of_outputs)
     
+    # Gradient color : Write the .obj file
+    point_colors, occurences = assign_gradient_color(pt_cloud_reshape.squeeze(0).numpy(), indices.tolist()[0])
+    write_obj_with_gradient_colors_from_pt_cloud(pt_cloud_reshape.squeeze(0).numpy(), point_colors, name_file, "outputs/")
+    
     # Save the dictionary to a JSON file
-    save_point_cloud_info(input_path, pt_cloud_reshape, idx_critical_points, name_file, output_path)
+    save_point_cloud_info(input_path, pt_cloud_reshape, idx_critical_points, occurences, name_file, output_path)
+    
+    
+    
+
 
     
 if __name__ == '__main__':
