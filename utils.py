@@ -11,7 +11,7 @@ def read_off(file):
     faces = [[int(s) for s in file.readline().strip().split(' ')][1:] for i_face in range(n_faces)]
     return verts, faces
 
-def write_obj_with_colors_from_pt_cloud(pt_cloud, idx_critical_pts, file_name, path_outputs_folder = "", kind_of_outputs = {'critical and non-critical points' : True, 'only critical points' : True, 'objet' : True}):
+def write_obj_with_colors_from_pt_cloud(pt_cloud, idx_critical_pts, file_name, path_outputs_folder, kind_of_outputs = {'critical and non-critical points' : True, 'only critical points' : True, 'objet' : True}):
     """
     Writes a point cloud to an .obj file with specific points colored in red.
     Other points are colored in black.
@@ -33,7 +33,7 @@ def write_obj_with_colors_from_pt_cloud(pt_cloud, idx_critical_pts, file_name, p
                 else:
                     # Black color for non-critical points (0.0 0.0 0.0)
                     f.write(f"v {x.item()} {y.item()} {z.item()} 0.0 0.0 0.0\n")
-        print(f"OBJ file saved to {path_outputs_folder+'critical_pts_and_'+file_name+'.obj'}")
+        #print(f"OBJ file saved to {path_outputs_folder+'critical_pts_and_'+file_name+'.obj'}")
         
     # QUE les Critical points : len(idx_critical_pts) pts
     if kind_of_outputs['only critical points']:
@@ -42,14 +42,14 @@ def write_obj_with_colors_from_pt_cloud(pt_cloud, idx_critical_pts, file_name, p
                 if idx in idx_critical_pts:
                     # Red color for critical points (1.0 0.0 0.0)
                     f.write(f"v {x.item()} {y.item()} {z.item()} 1.0 0.0 0.0\n")
-        print(f"OBJ file saved to {path_outputs_folder+'critical_pts_of_'+file_name+'.obj'}")
+        #print(f"OBJ file saved to {path_outputs_folder+'critical_pts_of_'+file_name+'.obj'}")
         
     # TOUT les pts SANS DISTINCTION : 1024 pts
     if kind_of_outputs['only critical points']:
         with open(path_outputs_folder+'all_pts_OF_'+file_name+'.obj', 'w') as f:
             for idx, (x, y, z) in enumerate(pt_cloud):
                 f.write(f"v {x.item()} {y.item()} {z.item()} 0.0 0.0 0.0\n")
-        print(f"OBJ file saved to {path_outputs_folder+'all_pts_OF_'+file_name+'.obj'}")
+        #print(f"OBJ file saved to {path_outputs_folder+'all_pts_OF_'+file_name+'.obj'}")
         
   
 def assign_gradient_color(point_cloud, indices_list):
@@ -105,7 +105,7 @@ def write_obj_with_gradient_colors_from_pt_cloud(pt_cloud, pt_colors, file_name,
             # Write the vertex with color in OBJ format (v x y z r g b)
             file.write(f"v {x} {y} {z} {r} {g} {b}\n")
 
-    print(f"OBJ file '{file_name}' with gradient colors written successfully.")
+    #print(f"OBJ file '{file_name}' with gradient colors written successfully.")
 
   
 ### ATTENTION 

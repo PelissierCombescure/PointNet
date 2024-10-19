@@ -28,6 +28,7 @@ def parse_args():
     parser.add_argument('input_path', type=str, help='Path to the specific input file')
     parser.add_argument('output_path', type=str, help='Path to the output directory')
     parser.add_argument('--kind_of_outputs', type=str, default='{"critical and non-critical points": true, "only critical points": true, "objet": true}', help='JSON string representing the type of outputs')
+    parser.add_argument('--affichage', type=str, default=True, help='JSON string representing the type of outputs')
     
     return parser.parse_args()
 
@@ -35,7 +36,7 @@ def parse_args():
 def setup_dataset(path_to_file):
     # Define the transformations
     train_transforms = transforms.Compose([
-                    PointSampler(1024),
+                    PointSampler(2048),
                     Normalize(),
                     RandRotation_z(),
                     RandomNoise(),
@@ -73,7 +74,7 @@ def save_point_cloud_info(input_path, pcd, idx_critical_points, occur, file_name
         'nb_critical_points': len(idx_critical_points),
         'shape': pcd.squeeze(0).numpy().shape,
         'critical_points_indices': list(idx_critical_points),        
-        'num_points': pcd.squeeze(0).tolist() ,
+        'pts_cloud': pcd.squeeze(0).tolist() ,
         'occurences': occur.tolist()
     }
     
@@ -82,8 +83,7 @@ def save_point_cloud_info(input_path, pcd, idx_critical_points, occur, file_name
     with open(metadata_file, 'w') as f:
         json.dump(point_cloud_info, f, indent=4)
     
-    print(f"Metadata saved to {metadata_file}")
-
+    #print(f"Metadata saved to {metadata_file}")
 
 # Main function
 def main():
@@ -93,6 +93,7 @@ def main():
     input_path = args.input_path
     name_file = Path(input_path).name.split('.')[0]
     output_path = args.output_path
+    affichage = args.affichage
     # Convert the kind_of_outputs argument from a JSON string to a dictionary
     dict_kind_of_outputs = json.loads(args.kind_of_outputs)
     
@@ -113,23 +114,21 @@ def main():
     # Extract critical points from the original point cloud
     idx_critical_points = set([item for sublist in indices.tolist() for item in sublist]); len(idx_critical_points)
     
-    print(f"\nName of file: {name_file}")
-    print(f"Output path: {output_path}")
-    print(f"Kind of outputs: {dict_kind_of_outputs}\n")
+    # if affichage :
+    #     print(f"\nName of file: {name_file}")
+    #     print(f"Output path: {output_path}")
+    #     print(f"Kind of outputs: {dict_kind_of_outputs}\n")
     
     # Write the .obj file
-    write_obj_with_colors_from_pt_cloud(pt_cloud_reshape, idx_critical_points, name_file, "outputs/", dict_kind_of_outputs)
+    write_obj_with_colors_from_pt_cloud(pt_cloud_reshape, idx_critical_points, name_file, output_path, dict_kind_of_outputs)
     
     # Gradient color : Write the .obj file
     point_colors, occurences = assign_gradient_color(pt_cloud_reshape.squeeze(0).numpy(), indices.tolist()[0])
-    write_obj_with_gradient_colors_from_pt_cloud(pt_cloud_reshape.squeeze(0).numpy(), point_colors, name_file, "outputs/")
+    write_obj_with_gradient_colors_from_pt_cloud(pt_cloud_reshape.squeeze(0).numpy(), point_colors, name_file, output_path)
     
     # Save the dictionary to a JSON file
     save_point_cloud_info(input_path, pt_cloud_reshape, idx_critical_points, occurences, name_file, output_path)
     
-    
-    
-
 
     
 if __name__ == '__main__':
